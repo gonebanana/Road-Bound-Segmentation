@@ -1,7 +1,7 @@
 # StarLine-TestTask
 Detection road bounds by point cloud file.
 
-## HowTo HowTo<br>
+## HowTo 
 To use it, you must have Python3. Download the project from GitHub page,
 then write in console: <br> 
  ```
