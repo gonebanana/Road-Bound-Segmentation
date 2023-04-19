@@ -14,7 +14,7 @@ from sklearn.cluster import DBSCAN
 def _extend_upper_right_bound(upper_right_bound, right_part):
     """
     Extends upper right bound of the crossroad that found by
-    clusterisation. It works with the projection of road on
+    clusterization. It works with the projection of road on
     plane Oxy.
     At each step consider some train points from the right side.
     Looking for approximation line for train points by linear regression
@@ -39,16 +39,15 @@ def _extend_upper_right_bound(upper_right_bound, right_part):
     dx = 70
     radius = 10
     stop = 0
-    neigh = NearestNeighbors(radius=radius,
-                             algorithm='kd_tree').fit(right_part[:, :2])
+    neigh = NearestNeighbors(radius=radius, algorithm='kd_tree').fit(right_part[:, :2])
     linreg = LinearRegression()
     while stop != 1:
-        # detect the nost right point of upper_right_bound
+        # detection the most right point of upper_right_bound
         p0 = max(upper_right_bound, key=lambda el: el[0]).reshape(1, -1)
         train_points = right_part[:, :2][
             (abs(right_part[:, 0] - p0[0, 0]) < abs(dx)) &
             (abs(right_part[:, 1] - p0[0, 1]) < abs(dx))]
-        # biuld regressor by points from around the most right point of
+        # build regressor by points from around the most right point of
         # upper right bound in the square 2dx x 2dx by
         # sum(Ax_i + B - y_i)^2 -> min
         linreg.fit(train_points[:, 0].reshape(1, -1).T, train_points[:, 1])
@@ -71,24 +70,21 @@ def _extend_upper_right_bound(upper_right_bound, right_part):
     return upper_right_bound
 
 
-def find_road_bounds(file="data.las"):
+def find_road_bounds(file, save_path):
     """
     by given file generates file with road bounds points
     and returns a path to it.
 
     Parameters
     ----------
-    file : TYPE, optional
-        The name of cloud points .las file. The default is "data.las".
-
-    Returns
-    -------
-    out_path : str
-        Path to file with road bound points.
-
+    file : str
+        The name of cloud points .las file.
+    save_path : str
+        The name of `.las` file that contained detected road bound points.
     """
-    inFile = File(file, mode="r")
-    points = np.array(list(zip(inFile.X, inFile.Y, inFile.Z)))
+
+    in_file = File(file, mode="r")
+    points = np.array(list(zip(in_file.X, in_file.Y, in_file.Z)))
 
     # select ground using RANSAC
     ransac = RANSACRegressor()
@@ -118,12 +114,7 @@ def find_road_bounds(file="data.las"):
     upper_right_bound = right_part[(clustering.labels_ == 16)]
     upper_right_bound = _extend_upper_right_bound(upper_right_bound,
                                                   right_part)
+    bound = np.vstack((left_bound, low_right_bound, upper_right_bound))
 
-    bound = left_bound
-    bound = np.vstack((np.vstack((bound, low_right_bound)), upper_right_bound))
-
-    out_path = os.getcwd() + os.sep + 'road_bound.las'
-    outFile = File(out_path, mode='w', header=inFile.header)
-    (outFile.X, outFile.Y, outFile.Z) = (bound[:, 0], bound[:, 1], bound[:, 2])
-    outFile.close()
-    return out_path
+    with File(save_path, mode='w', header=in_file.header) as out_file:
+        (out_file.X, out_file.Y, out_file.Z) = (bound[:, 0], bound[:, 1], bound[:, 2])
