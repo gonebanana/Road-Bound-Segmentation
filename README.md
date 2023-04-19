@@ -1,5 +1,6 @@
 # Road Bound Segmentation
-<img src="example\road_bound.jpg" width="700" height="350"><em>Crossroad bounds (red color)</em>
+<img src="example\road_bound.jpg" width="700" height="350">
+<em>Crossroad bounds (red color)</em>
 
 ## Description
 Detection road bounds by the LiDar 3D Point Cloud `*.las` file. Clustering is performed by the combination of
